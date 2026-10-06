@@ -1,0 +1,41 @@
+services:
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=reto
+      - DOCKER_INFLUXDB_INIT_PASSWORD=retoinicial123
+      - DOCKER_INFLUXDB_INIT_ORG=orgsomorrostro
+      - DOCKER_INFLUXDB_INIT_BUCKET=bucketsomorrostro
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=tokensomorrostro123456789
+    volumes:
+      - ./datos/influxdb:/var/lib/influxdb2
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=reto
+      - GF_SECURITY_ADMIN_PASSWORD=retoinicial123
+    volumes:
+      - ./datos/grafana:/var/lib/grafana
+    depends_on:
+      - influxdb
+
+  nodered:
+    image: nodered/node-red:latest
+    container_name: nodered
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./datos/nodered:/data
+    depends_on:
+      - influxdb
