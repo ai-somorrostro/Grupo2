@@ -4,8 +4,8 @@ Github reto 0 equipo 2
 
 ## Configuracion de los programas
     cd PIA/
-    (si no tienes docker ejecuta: apt install docker.io)
-    sudo docker compose up -d
+    (si no tienes docker ejecuta: apt install docker.io y luego apt install docker-compose-v2)
+    docker compose up -d
 
 ### InfluxDB :8086
     Usuario=reto
