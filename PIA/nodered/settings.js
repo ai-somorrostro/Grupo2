@@ -22,14 +22,14 @@
 
 module.exports = {
 
-/*******************************************************************************
- * Flow File and User Directory Settings
- *  - flowFile
- *  - credentialSecret
- *  - flowFilePretty
- *  - userDir
- *  - nodesDir
- ******************************************************************************/
+    /*******************************************************************************
+     * Flow File and User Directory Settings
+     *  - flowFile
+     *  - credentialSecret
+     *  - flowFilePretty
+     *  - userDir
+     *  - nodesDir
+     ******************************************************************************/
 
     /** The file containing the flows. If not set, defaults to flows_<hostname>.json **/
     flowFile: 'flows.json',
@@ -41,7 +41,7 @@ module.exports = {
      * node-red from being able to decrypt your existing credentials and they will be
      * lost.
      */
-    //credentialSecret: "a-secret-key",
+    credentialSecret: process.env.NODE_RED_CREDENTIAL_SECRET,
 
     /** By default, the flow JSON will be formatted over multiple lines making
      * it easier to compare changes when using version control.
@@ -62,15 +62,15 @@ module.exports = {
     //nodesDir: '/home/nol/.node-red/nodes',
     //nodesDir: ['/home/nol/.node-red/nodes', '/home/nol/my-project/nodes'],
 
-/*******************************************************************************
- * Security
- *  - adminAuth
- *  - https
- *  - httpsRefreshInterval
- *  - requireHttps
- *  - httpNodeAuth
- *  - httpStaticAuth
- ******************************************************************************/
+    /*******************************************************************************
+     * Security
+     *  - adminAuth
+     *  - https
+     *  - httpsRefreshInterval
+     *  - requireHttps
+     *  - httpNodeAuth
+     *  - httpStaticAuth
+     ******************************************************************************/
 
     /** To password protect the Node-RED editor and admin API, the following
      * property can be used. See https://nodered.org/docs/security.html for details.
@@ -127,22 +127,22 @@ module.exports = {
     //httpNodeAuth: {user:"user",pass:"$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN."},
     //httpStaticAuth: {user:"user",pass:"$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN."},
 
-/*******************************************************************************
- * Server Settings
- *  - uiPort
- *  - uiHost
- *  - apiMaxLength
- *  - httpServerOptions
- *  - httpAdminRoot
- *  - httpAdminMiddleware
- *  - httpAdminCookieOptions
- *  - httpNodeRoot
- *  - httpNodeCors
- *  - httpNodeMiddleware
- *  - httpStatic
- *  - httpStaticRoot
- *  - httpStaticCors
- ******************************************************************************/
+    /*******************************************************************************
+     * Server Settings
+     *  - uiPort
+     *  - uiHost
+     *  - apiMaxLength
+     *  - httpServerOptions
+     *  - httpAdminRoot
+     *  - httpAdminMiddleware
+     *  - httpAdminCookieOptions
+     *  - httpNodeRoot
+     *  - httpNodeCors
+     *  - httpNodeMiddleware
+     *  - httpStatic
+     *  - httpStaticRoot
+     *  - httpStaticCors
+     ******************************************************************************/
 
     /** the tcp port that the Node-RED web server is listening on */
     uiPort: process.env.PORT || 1880,
@@ -271,17 +271,17 @@ module.exports = {
     //     mode: "legacy", // legacy mode is for non-strict previous proxy determination logic (node-red < v4 compatible)
     // },
 
-/*******************************************************************************
- * Runtime Settings
- *  - lang
- *  - runtimeState
- *  - telemetry
- *  - diagnostics
- *  - logging
- *  - contextStorage
- *  - exportGlobalContextKeys
- *  - externalModules
- ******************************************************************************/
+    /*******************************************************************************
+     * Runtime Settings
+     *  - lang
+     *  - runtimeState
+     *  - telemetry
+     *  - diagnostics
+     *  - logging
+     *  - contextStorage
+     *  - exportGlobalContextKeys
+     *  - externalModules
+     ******************************************************************************/
 
     /** Uncomment the following to run node-red in your preferred language.
      * Available languages include: en-US (default), ja, de, zh-CN, zh-TW, ru, ko
@@ -400,11 +400,11 @@ module.exports = {
     },
 
 
-/*******************************************************************************
- * Editor Settings
- *  - disableEditor
- *  - editorTheme
- ******************************************************************************/
+    /*******************************************************************************
+     * Editor Settings
+     *  - disableEditor
+     *  - editorTheme
+     ******************************************************************************/
 
     /** The following property can be used to disable the editor. The admin API
      * is not affected by this option. To disable both the editor and the admin
@@ -493,29 +493,29 @@ module.exports = {
         },
     },
 
-/*******************************************************************************
- * Node Settings
- *  - fileWorkingDirectory
- *  - functionGlobalContext
- *  - functionExternalModules
- *  - globalFunctionTimeout
- *  - functionTimeout
- *  - nodeMessageBufferMaxLength
- *  - ui (for use with Node-RED Dashboard)
- *  - debugUseColors
- *  - debugMaxLength
- *  - debugStatusLength
- *  - execMaxBufferSize
- *  - httpRequestTimeout
- *  - mqttReconnectTime
- *  - serialReconnectTime
- *  - socketReconnectTime
- *  - socketTimeout
- *  - tcpMsgQueueSize
- *  - inboundWebSocketTimeout
- *  - tlsConfigDisableLocalFiles
- *  - webSocketNodeVerifyClient
- ******************************************************************************/
+    /*******************************************************************************
+     * Node Settings
+     *  - fileWorkingDirectory
+     *  - functionGlobalContext
+     *  - functionExternalModules
+     *  - globalFunctionTimeout
+     *  - functionTimeout
+     *  - nodeMessageBufferMaxLength
+     *  - ui (for use with Node-RED Dashboard)
+     *  - debugUseColors
+     *  - debugMaxLength
+     *  - debugStatusLength
+     *  - execMaxBufferSize
+     *  - httpRequestTimeout
+     *  - mqttReconnectTime
+     *  - serialReconnectTime
+     *  - socketReconnectTime
+     *  - socketTimeout
+     *  - tcpMsgQueueSize
+     *  - inboundWebSocketTimeout
+     *  - tlsConfigDisableLocalFiles
+     *  - webSocketNodeVerifyClient
+     ******************************************************************************/
 
     /** The working directory to handle relative file paths from within the File nodes
      * defaults to the working directory of the Node-RED process.
@@ -629,18 +629,18 @@ module.exports = {
     //    */
     //},
 
-/*******************************************************************************
- * Node Default Overrides
- * 
- * This allows the user to override default values of a node. These are the values
- * that are applied when a node is added to the workspace. They do not affect
- * nodes that have already been deployed.
- * 
- * The available properties of a node type can be found in the Information sidebar when
- * selecting a node of that type.
- * 
- * 
- *******************************************************************************/
+    /*******************************************************************************
+     * Node Default Overrides
+     * 
+     * This allows the user to override default values of a node. These are the values
+     * that are applied when a node is added to the workspace. They do not affect
+     * nodes that have already been deployed.
+     * 
+     * The available properties of a node type can be found in the Information sidebar when
+     * selecting a node of that type.
+     * 
+     * 
+     *******************************************************************************/
 
     // nodeDefaults: {
     //     "debug": {

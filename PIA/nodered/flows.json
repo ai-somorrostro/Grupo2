@@ -8,6 +8,29 @@
         "env": []
     },
     {
+        "id": "0be38a8e9e4c67ee",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://influxdb:8086",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "4fa9a168c2e274ef",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-influxdb": "0.7.0"
+        }
+    },
+    {
         "id": "670f11fe866ddc19",
         "type": "inject",
         "z": "3c7d0d72b3ff751f",
@@ -52,8 +75,8 @@
         "y": 420,
         "wires": [
             [
-                "7307e2fef4ba9200",
-                "0ab4c63c28f13f76"
+                "0ab4c63c28f13f76",
+                "7307e2fef4ba9200"
             ]
         ]
     },
@@ -69,8 +92,8 @@
         "database": "database",
         "precisionV18FluxV20": "ms",
         "retentionPolicyV18Flux": "",
-        "org": "clase",
-        "bucket": "API Steam",
+        "org": "orgsomorrostro",
+        "bucket": "bucketsomorrostro",
         "x": 1040,
         "y": 560,
         "wires": []
@@ -115,28 +138,5 @@
         "x": 980,
         "y": 300,
         "wires": []
-    },
-    {
-        "id": "0be38a8e9e4c67ee",
-        "type": "influxdb",
-        "hostname": "127.0.0.1",
-        "port": 8086,
-        "protocol": "http",
-        "database": "database",
-        "name": "",
-        "usetls": false,
-        "tls": "",
-        "influxdbVersion": "2.0",
-        "url": "http://influxdb:8086",
-        "timeout": 10,
-        "rejectUnauthorized": true
-    },
-    {
-        "id": "e37245eeda33fea8",
-        "type": "global-config",
-        "env": [],
-        "modules": {
-            "node-red-contrib-influxdb": "0.7.0"
-        }
     }
 ]

@@ -1,7 +1,5 @@
 BDA/games_march2025_cleaned.csv
 PIA/datos/
-PIA/nodered/.config*
 PIA/nodered/*.backup
-PIA/nodered/node_modules/
-PIA/nodered/node_modules/
 PIA/nodered/lib/
+PIA/nodered/.npm
