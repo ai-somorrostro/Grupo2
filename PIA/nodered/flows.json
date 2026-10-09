@@ -34,7 +34,7 @@
         "id": "670f11fe866ddc19",
         "type": "inject",
         "z": "3c7d0d72b3ff751f",
-        "name": "Injection 3 mins",
+        "name": "Injection 10 mins",
         "props": [
             {
                 "p": "payload"
@@ -44,9 +44,9 @@
                 "vt": "str"
             }
         ],
-        "repeat": "180",
+        "repeat": "600",
         "crontab": "",
-        "once": false,
+        "once": true,
         "onceDelay": 0.1,
         "topic": "",
         "payload": "",

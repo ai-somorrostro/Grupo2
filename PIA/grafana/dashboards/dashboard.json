@@ -4,18 +4,25 @@
   "metadata": {
     "name": "adf66hl",
     "namespace": "default",
-    "uid": "65e118b7-7f3f-4b88-bd1f-652a2629cccf",
-    "resourceVersion": "1791198277341015",
+    "uid": "9597f246-6b33-4545-bdaa-7fa673a6e400",
+    "resourceVersion": "1791536308985003",
     "generation": 5,
-    "creationTimestamp": "2026-10-05T10:38:06Z",
+    "creationTimestamp": "2026-10-09T07:34:32Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "3867789581754368"
+      "grafana.app/deprecatedInternalID": "776466381590528"
     },
     "annotations": {
-      "grafana.app/createdBy": "user:efyzyil8g7zlsb",
-      "grafana.app/saved-from-ui": "Grafana v13.2.2 (1bea008f7e)",
-      "grafana.app/updatedBy": "user:efyzyil8g7zlsb",
-      "grafana.app/updatedTimestamp": "2026-10-05T11:04:37Z"
+      "grafana.app/createdBy": "access-policy:service",
+      "grafana.app/managedBy": "classic-file-provisioning",
+      "grafana.app/managerAllowsEdits": "true",
+      "grafana.app/managerId": "default",
+      "grafana.app/message": "jh",
+      "grafana.app/saved-from-ui": "Grafana v13.2.3 (90ffed056f)",
+      "grafana.app/sourceChecksum": "0fbc2081bc4c205bf492ad6db5609b91",
+      "grafana.app/sourcePath": "/var/lib/grafana/dashboards/dashboard.json",
+      "grafana.app/sourceTimestamp": "1791531474000",
+      "grafana.app/updatedBy": "user:dg0opv0wfuakgf",
+      "grafana.app/updatedTimestamp": "2026-10-09T08:58:28Z"
     }
   },
   "spec": {
@@ -66,7 +73,7 @@
                         "name": "P951FEA4DE68E13C5"
                       },
                       "spec": {
-                        "query": "from(bucket: \"bucketsomorrostro\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"cs2_live_players\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"jugadores\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> yield(name: \"mean\")"
+                        "query": "from(bucket: \"bucketsomorrostro\")\r\n  |> range(start: v.timeRangeStart, stop: now())\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"cs2_live_players\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"jugadores\")\r\n  |> aggregateWindow(every: 10m, fn: mean, timeSrc: \"_start\", createEmpty: false)\r\n  |> yield(name: \"mean\")"
                       }
                     },
                     "refId": "A",
@@ -81,7 +88,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.2.2",
+            "version": "13.2.3",
             "spec": {
               "options": {
                 "legend": {
@@ -162,6 +169,269 @@
             }
           }
         }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "id": 3,
+          "title": "Prediccion",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"bucketsomorrostro\")\r\n  |> range(start: v.timeRangeStart, stop: now())\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"cs2_live_players\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"jugadores\")\r\n  |> aggregateWindow(every: 10m, fn: mean, timeSrc: \"_start\", createEmpty: false)\r\n  |> yield(name: \"jugadores\")"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"bucketsomorrostro\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"cs2_prediccion\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"prediccion\" or r[\"_field\"] == \"prediccion_min\" or r[\"_field\"] == \"prediccion_max\")\r\n  |> yield(name: \"prediccion\")"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "13.2.3",
+            "spec": {
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "percentage",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 60,
+                        "color": "#EAB839"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "smooth",
+                    "lineStyle": {
+                      "fill": "solid"
+                    },
+                    "lineWidth": 2,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "never",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "jugadores"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "displayName",
+                        "value": "Datos Reales (Pasado)"
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 15
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "prediccion"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "red",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "displayName",
+                        "value": "Predicción Media"
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "prediccion_max"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "red",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "displayName",
+                        "value": "Cono Incertidumbre (Max)"
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 1
+                      },
+                      {
+                        "id": "custom.fillBelowTo",
+                        "value": "prediccion_min"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 20
+                      },
+                      {
+                        "id": "custom.lineStyle",
+                        "value": {
+                          "fill": "dash",
+                          "dash": [4, 4]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "prediccion_min"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "red",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "displayName",
+                        "value": "Cono Incertidumbre (Min)"
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 1
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineStyle",
+                        "value": {
+                          "fill": "dash",
+                          "dash": [4, 4]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
       }
     },
     "layout": {
@@ -180,6 +450,19 @@
                 "name": "panel-1"
               }
             }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 8,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-3"
+              }
+            }
           }
         ]
       }
@@ -190,9 +473,9 @@
     "tags": [],
     "timeSettings": {
       "timezone": "browser",
-      "from": "now-30m",
-      "to": "now",
-      "autoRefresh": "",
+      "from": "now-29d",
+      "to": "now+29d",
+      "autoRefresh": "1m",
       "autoRefreshIntervals": [
         "5s",
         "10s",

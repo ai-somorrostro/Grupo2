@@ -59,3 +59,15 @@ services:
       - ./nodered:/data
     depends_on:
       - influxdb
+
+  prediccion:
+    image: python:3.11-slim
+    container_name: timesfm-prediccion
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./prediccion:/app
+      - ./datos/modelo:/root/.cache/huggingface
+    command: sh -c "pip install --no-cache-dir influxdb-client timesfm[torch] && python -u predecir.py"
+    depends_on:
+      - influxdb
