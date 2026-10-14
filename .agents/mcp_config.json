@@ -12,7 +12,10 @@
             ]
         },
         "steamwebapi": {
-            "serverUrl": "https://mcp.steamwebapi.com/mcp"
+            "serverUrl": "https://mcp.steamwebapi.com/mcp",
+            "headers": {
+                "x-api-key": "4JT1Y23EHO5ENN8G"
+            }
         }
     }
 }
