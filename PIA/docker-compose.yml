@@ -25,9 +25,9 @@ services:
       GF_SECURITY_ADMIN_USER: reto
       GF_SECURITY_ADMIN_PASSWORD: retoinicial123
     volumes:
-      - ./datos/grafana:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - influxdb
 
@@ -42,8 +42,6 @@ services:
       GRAFANA_URL: http://grafana:3000
       GRAFANA_USERNAME: reto
       GRAFANA_PASSWORD: retoinicial123
-      # esto por ahora pero hay que tokenizarlo
-      # GRAFANA_SERVICE_ACCOUNT_TOKEN: <tu_token>
     depends_on:
       - grafana
 
@@ -59,3 +57,7 @@ services:
       - ./nodered:/data
     depends_on:
       - influxdb
+
+volumes:
+  grafana_data:
+
