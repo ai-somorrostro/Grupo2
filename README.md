@@ -1,112 +1,20 @@
-# Reto-0
+# Reto 0 — Equipo 2
 
-Repositorio del Reto 0 - Equipo 2.
+## ¿Qué es este proyecto?
 
----
+Este repositorio reúne un análisis de datos de Steam y un entorno para visualizar datos de una API. El análisis está en `SBD/` y el informe de visualización, en `BDA/`.
 
-## Cómo iniciarlo
+## Cómo iniciar cada parte
 
-### 1. Puesta en marcha de los servicios
+- **Análisis de Steam:** instala Jupyter, pandas y matplotlib (`pip install jupyter pandas matplotlib`), entra en `SBD/` y abre `steam_notebook.ipynb` en Jupyter o VS Code. El archivo `steam_data.csv` debe estar en esa carpeta.
+- **Servicios de visualización:** necesitas Docker Desktop. Ábrelo y espera a que Docker esté en ejecución. Desde la raíz del repositorio, ejecuta `cd PIA` y luego `docker compose up -d`. Grafana está en `http://localhost:3000`, InfluxDB en `http://localhost:8086`, Node-RED en `http://localhost:1880` y Grafana MCP en `http://localhost:8000`. Las credenciales de Grafana e InfluxDB están definidas en `PIA/docker-compose.yml`.
+- **Informe BDA:** abre `BDA/Datos de la API en gráficas (BDA).pdf`; no requiere iniciar servicios.
 
-Para levantar todo el entorno, entramos en el directorio `PIA/` y ejecutamos Docker Compose:
+Para detener los servicios, ejecuta `docker compose down` desde `PIA/`.
 
-```bash
-cd PIA/
-docker compose up -d
-```
+## Solución de problemas
 
-> **Nota:** Si no tienes Docker instalado en Linux (Ubuntu/Debian), puedes instalarlo con:
-> ```bash
-> sudo apt update && sudo apt install docker.io docker-compose-v2
-> ```
-
-### 2. Acceso y credenciales de los servicios
-
-Una vez levantado el entorno, cada servicio queda corriendo en su puerto correspondiente:
-
-| Servicio | URL / Puerto | Usuario | Contraseña |
-| --- | --- | --- | --- |
-| **InfluxDB** | `http://localhost:8086` | `reto` | `retoinicial123` |
-| **Grafana** | `http://localhost:3000` | `reto` | `retoinicial123` |
-| **Node-RED** | `http://localhost:1880` | *(Acceso directo)* | *(Sin contraseña)* |
-
----
-
-## Documentación de la configuración
-
-Para configurar los contenedores hemos utilizado Docker Compose, lo que nos permite levantar y conectar todos los servicios en un mismo entorno sin necesidad de configurarlos manualmente uno por uno.
-
-En el archivo `PIA/docker-compose.yml` definimos los servicios principales que vamos a utilizar: **InfluxDB**, **Grafana** y **Node-RED**.
-
-### InfluxDB
-
-En InfluxDB lo hemos configurado mediante variables de entorno para que se inicialice automáticamente con nuestra organización, bucket y credenciales de administrador:
-
-```yaml
-environment:
-  DOCKER_INFLUXDB_INIT_MODE: setup
-  DOCKER_INFLUXDB_INIT_USERNAME: reto
-  DOCKER_INFLUXDB_INIT_PASSWORD: retoinicial123
-  DOCKER_INFLUXDB_INIT_ORG: orgsomorrostro
-  DOCKER_INFLUXDB_INIT_BUCKET: bucketsomorrostro
-  DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: tokensomorrostro123456789
-```
-
-Datos configurados para las conexiones:
-- **Organización:** `orgsomorrostro`
-- **Bucket:** `bucketsomorrostro`
-- **Token de admin:** `tokensomorrostro123456789`
-
-Así ya tenemos InfluxDB corriendo directamente con nuestros valores definidos sin tener que pasar por el asistente web inicial.
-
-### Grafana
-
-Hemos hecho un proceso similar para tener ya un usuario administrador creado desde el arranque y tres volúmenes mapeados:
-
-```yaml
-environment:
-  GF_SECURITY_ADMIN_USER: reto
-  GF_SECURITY_ADMIN_PASSWORD: retoinicial123
-volumes:
-  - ./datos/grafana:/var/lib/grafana
-  - ./grafana/provisioning:/etc/grafana/provisioning
-  - ./grafana/dashboards:/var/lib/grafana/dashboards
-```
-
-Aquí tenemos 3 volúmenes porque queremos que:
-- Los datos de Grafana se guarden en `./datos/grafana`.
-- Las configuraciones y fuentes de datos se guarden en `./grafana/provisioning`.
-- Los dashboards de Grafana se guarden en `./grafana/dashboards`.
-
-### Node-RED
-
-Es mucho más simple. Le configuramos la variable de entorno:
-
-```yaml
-environment:
-  - NODE_RED_CREDENTIAL_SECRET=retoinicial123
-```
-
-Con esto fijamos la clave secreta con la que Node-RED cifra las credenciales de los flujos. De esta manera, cada vez que iniciamos el contenedor puede descifrar los tokens y contraseñas guardados sin problemas y sin pedirnos una clave nueva.
-
----
-
-## Archivos ignorados (.gitignore)
-
-Un punto importante del proyecto es lo que hemos metido en `.gitignore`:
-
-```text
-BDA/games_march2025_cleaned.csv
-PIA/datos/
-PIA/nodered/*.backup
-PIA/nodered/lib/
-PIA/nodered/.npm
-```
-
-- **`BDA/games_march2025_cleaned.csv`:** Es el CSV del histórico de juegos. Lo ignoramos para no subir archivos pesados al repositorio de GitHub.
-- **`PIA/datos/`:** Contiene los datos persistentes que generan los contenedores (las bases de datos locales de InfluxDB y Grafana). Al ignorar esta carpeta evitamos subir datos locales de cada máquina y subimos solo los archivos de configuración.
-- **Archivos de Node-RED:** Ignoramos copias de seguridad (`*.backup`), caché (`.npm`) y librerías temporales (`lib/`).
-
-### Nota sobre `node_modules` en Node-RED
-
-Tuvimos un tema con esto: en principio no queríamos subir la carpeta `PIA/nodered/node_modules`, pero la hemos tenido que mantener en el repositorio porque ahí viene ya instalado el complemento de InfluxDB para Node-RED (`node-red-contrib-influxdb`). De esta forma, al levantar el contenedor con Docker Compose, ya viene listo para funcionar y usar InfluxDB sin tener que entrar a instalar nada a mano.
+- Si Docker Compose no conecta, comprueba que Docker Desktop esté abierto y que Docker esté en ejecución.
+- Si un puerto está ocupado, edita el mapeo correspondiente en `PIA/docker-compose.yml`. Cambia el número de la izquierda, que es el puerto de tu equipo, y deja intacto el de la derecha, que es el puerto del contenedor. Por ejemplo, cambia `3000:3000` por `3001:3000` para acceder a Grafana en `http://localhost:3001`. Luego, desde `PIA/`, ejecuta `docker compose up -d` de nuevo.
+- Si el notebook no encuentra el CSV, ejecútalo desde `SBD/` y comprueba que `steam_data.csv` esté allí.
+- Si faltan módulos al ejecutar el notebook, instala las dependencias: `pip install jupyter pandas matplotlib`.
