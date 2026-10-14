@@ -17,6 +17,9 @@
     "steamwebapi": {
       "type": "remote",
       "url": "https://mcp.steamwebapi.com/mcp",
+      "headers": {
+        "x-api-key": "4JT1Y23EHO5ENN8G"
+      },
       "enabled": true
     }
   }
