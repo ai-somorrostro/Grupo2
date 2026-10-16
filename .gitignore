@@ -2,4 +2,4 @@ BDA/games_march2025_cleaned.csv
 PIA/datos/
 PIA/nodered/*.backup
 PIA/nodered/lib/
-PIA/nodered/.npm
+PIA/nodered/.npm*Zone.Indentifier
