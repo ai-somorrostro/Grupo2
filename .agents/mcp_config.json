@@ -1,0 +1,21 @@
+{
+    "mcpServers": {
+        "grafana": {
+            "command": "docker",
+            "args": [
+                "exec",
+                "-i",
+                "mcp-grafana",
+                "/app/mcp-grafana",
+                "-t",
+                "stdio"
+            ]
+        },
+        "steamwebapi": {
+            "serverUrl": "https://mcp.steamwebapi.com/mcp",
+            "headers": {
+                "x-api-key": "4JT1Y23EHO5ENN8G"
+            }
+        }
+    }
+}

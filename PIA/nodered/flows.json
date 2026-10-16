@@ -1,0 +1,142 @@
+[
+    {
+        "id": "3c7d0d72b3ff751f",
+        "type": "tab",
+        "label": "API STEAM",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0be38a8e9e4c67ee",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://influxdb:8086",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "4fa9a168c2e274ef",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-influxdb": "0.7.0"
+        }
+    },
+    {
+        "id": "670f11fe866ddc19",
+        "type": "inject",
+        "z": "3c7d0d72b3ff751f",
+        "name": "Injection 3 mins",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "180",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 390,
+        "y": 420,
+        "wires": [
+            [
+                "564d77e135891f62"
+            ]
+        ]
+    },
+    {
+        "id": "44f6421154d184d0",
+        "type": "function",
+        "z": "3c7d0d72b3ff751f",
+        "name": "Funcion API",
+        "func": "const resp = msg.payload && msg.payload.response;\nconst jugadores = resp ? resp.player_count : undefined;\n\nif (typeof jugadores !== \"number\") {\n    node.warn(\"Respuesta inesperada de Steam: \" + JSON.stringify(msg.payload));\n    node.status({ fill: \"red\", shape: \"ring\", text: \"Sin dato\" });\n    return null;\n}\n\nmsg.payload = { jugadores: jugadores };\n\nnode.status({ fill: \"green\", shape: \"dot\", text: \"Jugadores: \" + jugadores });\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 420,
+        "wires": [
+            [
+                "0ab4c63c28f13f76",
+                "7307e2fef4ba9200"
+            ]
+        ]
+    },
+    {
+        "id": "7307e2fef4ba9200",
+        "type": "influxdb out",
+        "z": "3c7d0d72b3ff751f",
+        "influxdb": "0be38a8e9e4c67ee",
+        "name": "INFLUX, Bucket: API Steam",
+        "measurement": "cs2_live_players",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "orgsomorrostro",
+        "bucket": "bucketsomorrostro",
+        "x": 1040,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "564d77e135891f62",
+        "type": "http request",
+        "z": "3c7d0d72b3ff751f",
+        "name": "API",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=730",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 570,
+        "y": 420,
+        "wires": [
+            [
+                "44f6421154d184d0"
+            ]
+        ]
+    },
+    {
+        "id": "0ab4c63c28f13f76",
+        "type": "debug",
+        "z": "3c7d0d72b3ff751f",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 980,
+        "y": 300,
+        "wires": []
+    }
+]
