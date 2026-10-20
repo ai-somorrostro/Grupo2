@@ -14,6 +14,12 @@ services:
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
     volumes:
       - ./datos/influxdb:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   grafana:
     image: grafana/grafana:13.2.4
@@ -37,7 +43,14 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
-      - influxdb
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   mcp:
     image: grafana/mcp-grafana:2.0.2
@@ -51,7 +64,8 @@ services:
       GRAFANA_USERNAME: ${GF_SECURITY_ADMIN_USER}
       GRAFANA_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
     depends_on:
-      - grafana
+      grafana:
+        condition: service_healthy
 
   nodered:
     image: nodered/node-red:5.0.8
@@ -64,7 +78,8 @@ services:
     volumes:
       - ./nodered:/data
     depends_on:
-      - influxdb
+      influxdb:
+        condition: service_healthy
 
 volumes:
   grafana_data:
