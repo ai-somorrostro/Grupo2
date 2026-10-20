@@ -1,6 +1,6 @@
 services:
   influxdb:
-    image: influxdb:latest
+    image: influxdb:2.9.1
     container_name: influxdb
     restart: unless-stopped
     ports:
@@ -16,7 +16,7 @@ services:
       - ./datos/influxdb:/var/lib/influxdb2
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.2.4
     container_name: grafana
     restart: unless-stopped
     ports:
@@ -37,7 +37,7 @@ services:
       - influxdb
 
   mcp:
-    image: grafana/mcp-grafana:latest
+    image: grafana/mcp-grafana:2.0.2
     container_name: mcp-grafana
     restart: unless-stopped
     command: ["-t", "streamable-http", "--allowed-hosts", "*"]
@@ -51,7 +51,7 @@ services:
       - grafana
 
   nodered:
-    image: nodered/node-red:latest
+    image: nodered/node-red:5.0.8
     container_name: nodered
     restart: unless-stopped
     ports:
