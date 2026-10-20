@@ -3,6 +3,7 @@ PIA/datos/
 PIA/nodered/*.backup
 PIA/nodered/lib/
 PIA/nodered/.npm*Zone.Indentifier
+Mejoras/csv/extras/*
 
 # Entorno y credenciales
 .env
