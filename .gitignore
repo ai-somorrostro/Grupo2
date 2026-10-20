@@ -8,3 +8,7 @@ Mejoras/csv/extras/*
 # Entorno y credenciales
 .env
 **/.env
+
+# Dependencias
+node_modules/
+**/node_modules/
