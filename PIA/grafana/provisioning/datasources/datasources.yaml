@@ -9,7 +9,7 @@ datasources:
     isDefault: true
     jsonData:
       version: Flux
-      organization: orgsomorrostro
-      defaultBucket: bucketsomorrostro
+      organization: ${DOCKER_INFLUXDB_INIT_ORG}
+      defaultBucket: ${DOCKER_INFLUXDB_INIT_BUCKET}
     secureJsonData:
-      token: tokensomorrostro123456789
+      token: ${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
