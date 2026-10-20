@@ -68,7 +68,10 @@ services:
         condition: service_healthy
 
   nodered:
-    image: nodered/node-red:5.0.8
+    build:
+      context: ./nodered
+      dockerfile: Dockerfile
+    image: nodered-custom:5.0.8
     container_name: nodered
     restart: unless-stopped
     ports:
@@ -77,6 +80,7 @@ services:
       - NODE_RED_CREDENTIAL_SECRET=${NODE_RED_CREDENTIAL_SECRET}
     volumes:
       - ./nodered:/data
+      - /data/node_modules
     depends_on:
       influxdb:
         condition: service_healthy
