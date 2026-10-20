@@ -6,7 +6,7 @@ Este repositorio reúne un análisis de datos de Steam y un entorno para visuali
 
 ## Cómo iniciar cada parte
 
-- **Análisis de Steam:** instala Jupyter, pandas y matplotlib (`pip install jupyter pandas matplotlib`), entra en `SBD/` y abre `steam_notebook.ipynb` en Jupyter o VS Code. El archivo `steam_data.csv` debe estar en esa carpeta.
+- **Análisis de Steam:** instala Jupyter, pandas y matplotlib (`pip install jupyter pandas matplotlib`), entra en `SBD/` y abre `steam_notebook.ipynb` en Jupyter o VS Code. El archivo `steam_data.csv` debe estar en esa carpeta. El notebook también lee `Mejoras/csv/twitch_games_monthly_historical.csv` mediante una ruta relativa a `SBD/`, así que conserva la estructura de carpetas del repositorio (`SBD/` y `Mejoras/` como carpetas hermanas).
 - **Servicios de visualización:** necesitas Docker Desktop. Ábrelo y espera a que Docker esté en ejecución. Desde la raíz del repositorio, ejecuta `cd PIA` y luego `docker compose up -d`. Grafana está en `http://localhost:3000`, InfluxDB en `http://localhost:8086`, Node-RED en `http://localhost:1880` y Grafana MCP en `http://localhost:8000`. Las credenciales de Grafana e InfluxDB están definidas en `PIA/docker-compose.yml`.
 - **Para el apartado BDA:** esta el doc en `BDA/Datos en gráficas (BDA).pdf`; no requiere iniciar servicios en esta carpeta pero se necesita influx y grafana funcionando, pero si cambiar el docker compose y el notebook para añadir el Gmail del usuario que va a recibir alertas y los datos de la organización y el token; ambas cosas están explicadas dentro del documento de BDA para saber en que bloques hay que realizar los cambios.
 
