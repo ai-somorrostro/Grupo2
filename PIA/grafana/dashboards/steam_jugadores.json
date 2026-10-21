@@ -27,6 +27,31 @@
             "type": "dashboard"
           }
         }
+      },
+      {
+        "kind": "AnnotationQuery",
+        "spec": {
+          "query": {
+            "kind": "DataQuery",
+            "group": "influxdb",
+            "version": "v0",
+            "datasource": {
+              "name": "P951FEA4DE68E13C5"
+            },
+            "spec": {}
+          },
+          "enable": true,
+          "hide": false,
+          "iconColor": "red",
+          "name": "Anomalías",
+          "legacyOptions": {
+            "query": "import \"math\"\n\nfrom(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> filter(fn: (r) => r.game =~ /${juegos:regex}/)\n  |> group(columns: [\"game\"])\n  |> sort(columns: [\"_time\"])\n  |> map(fn: (r) => ({r with current: r._value, time_int: int(v: r._time)}))\n  |> difference(columns: [\"_value\", \"time_int\"], nonNegative: false)\n  |> map(fn: (r) => ({\n      r with\n      previous: r.current - r._value,\n      gap_s: float(v: r.time_int) / 1000000000.0\n    }))\n  |> filter(fn: (r) => r.gap_s <= 600.0)\n  |> filter(fn: (r) => math.abs(x: r.current - r.previous) >= 200000.0)\n  |> map(fn: (r) => ({\n      r with\n      text: r.game + \": \" + (if r.current - r.previous > 0.0 then \"+\" else \"\") + string(v: math.round(x: (r.current - r.previous) / 1000.0)) + \"k\",\n      tags: r.game\n    }))\n  |> keep(columns: [\"_time\", \"text\", \"tags\"])",
+            "tagsColumn": "tags",
+            "textColumn": "text",
+            "timeColumn": "_time",
+            "title": "Anomalías"
+          }
+        }
       }
     ],
     "cursorSync": "Crosshair",
@@ -36,7 +61,8 @@
         "kind": "Panel",
         "spec": {
           "id": 1,
-          "title": "Jugadores por juego",
+          "title": "Jugadores por intervalo",
+          "description": "Evolución de jugadores de los juegos seleccionados con un punto cada 5 minutos. CS2, Dota 2 y PUBG usan el eje derecho; el resto, el izquierdo. Las marcas rojas son anomalías de 200.000 jugadores o más en 10 minutos o menos.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -53,7 +79,7 @@
                         "name": "P951FEA4DE68E13C5"
                       },
                       "spec": {
-                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\")\n  |> filter(fn: (r) => r._field == \"players\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> group(columns: [\"game\"])"
+                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\")\n  |> filter(fn: (r) => r._field == \"players\")\n  |> filter(fn: (r) => r.game =~ /${juegos:regex}/)\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"game\"], valueColumn: \"_value\")\n  |> drop(columns: [\"_start\", \"_stop\", \"_field\", \"_measurement\", \"appid\"])\n  |> group()"
                       }
                     },
                     "refId": "A",
@@ -74,7 +100,8 @@
                 "legend": {
                   "calcs": [],
                   "displayMode": "list",
-                  "placement": "bottom"
+                  "placement": "bottom",
+                  "showLegend": true
                 },
                 "tooltip": {
                   "mode": "multi",
@@ -83,25 +110,99 @@
               },
               "fieldConfig": {
                 "defaults": {
-                  "unit": "short",
+                  "unit": "locale",
+                  "color": {
+                    "mode": "palette-classic"
+                  },
                   "custom": {
+                    "axisLabel": "Resto",
+                    "axisPlacement": "auto",
                     "drawStyle": "line",
                     "fillOpacity": 10,
-                    "lineWidth": 1,
-                    "showPoints": "never"
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 2,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "never",
+                    "spanNulls": 600000,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   }
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Counter-Strike 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "custom.axisLabel",
+                        "value": "Top juegos"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Dota 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "custom.axisLabel",
+                        "value": "Top juegos"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "PUBG"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "custom.axisLabel",
+                        "value": "Top juegos"
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
         }
       },
-      "panel-2": {
+      "panel-10": {
         "kind": "Panel",
         "spec": {
-          "id": 2,
-          "title": "Jugadores actuales (${juego})",
+          "id": 10,
+          "title": "Juego A: ${juego_a}",
+          "description": "Jugadores actuales y media del periodo del Juego A.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -118,7 +219,438 @@
                         "name": "P951FEA4DE68E13C5"
                       },
                       "spec": {
-                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\")\n  |> filter(fn: (r) => r._field == \"players\")\n  |> filter(fn: (r) => r.game == \"${juego}\")\n  |> last()"
+                        "query": "base = from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\" and r.game == \"${juego_a}\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\nactual = base |> last() |> map(fn: (r) => ({r with metric: \"Actual\"}))\nmedia = base |> mean() |> map(fn: (r) => ({r with metric: \"Media\"}))\nunion(tables: [actual, media])\n  |> group()\n  |> pivot(rowKey: [], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> keep(columns: [\"Actual\", \"Media\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "value_and_name",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Actual"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#73BF69",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Media"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#F2CC0C",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-11": {
+        "kind": "Panel",
+        "spec": {
+          "id": 11,
+          "title": "Juego B: ${juego_b}",
+          "description": "Jugadores actuales y media del periodo del Juego B.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "base = from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\" and r.game == \"${juego_b}\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\nactual = base |> last() |> map(fn: (r) => ({r with metric: \"Actual\"}))\nmedia = base |> mean() |> map(fn: (r) => ({r with metric: \"Media\"}))\nunion(tables: [actual, media])\n  |> group()\n  |> pivot(rowKey: [], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> keep(columns: [\"Actual\", \"Media\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "value_and_name",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Actual"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#73BF69",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Media"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#F2CC0C",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-12": {
+        "kind": "Panel",
+        "spec": {
+          "id": 12,
+          "title": "Reparto actual por juego",
+          "description": "Porcentaje de jugadores actuales de cada juego seleccionado, usando el último dato de los últimos 15 minutos. Respeta el filtro Juegos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> filter(fn: (r) => r.game =~ /${juegos:regex}/)\n  |> group(columns: [\"game\"])\n  |> last()\n  |> group()\n  |> pivot(rowKey: [], columnKey: [\"game\"], valueColumn: \"_value\")"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "piechart",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayLabels": [
+                  "percent"
+                ],
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "right",
+                  "showLegend": true,
+                  "values": [
+                    "percent"
+                  ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "locale",
+                  "decimals": 0,
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "noValue": "Sin datos",
+                  "custom": {
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    }
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "id": 2,
+          "title": "Jugadores (${stat})",
+          "description": "Con Juegos=All, suma todos los juegos en cada intervalo de 5 minutos y calcula el estadístico sobre el total; con juegos seleccionados, hace lo mismo sobre esos juegos. Directo = último dato. Juegos = número de juegos con datos en los últimos 15 minutos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "base = from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> filter(fn: (r) => r.game =~ /${juegos:regex}/)\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\ntotal = base\n  |> group(columns: [\"_time\"])\n  |> sum()\n  |> group()\n  |> keep(columns: [\"_time\", \"_value\"])\nlast_t = total |> last() |> map(fn: (r) => ({r with stat: \"Directo\"}))\nmin_t = total |> min() |> map(fn: (r) => ({r with stat: \"Mínimo\"}))\nmax_t = total |> max() |> map(fn: (r) => ({r with stat: \"Máximo\"}))\nmean_t = total |> mean() |> map(fn: (r) => ({r with stat: \"Media\"}))\nunion(tables: [last_t, min_t, max_t, mean_t])\n  |> filter(fn: (r) => r.stat == \"${stat}\")\n  |> rename(columns: {_value: \"Jugadores\"})\n  |> keep(columns: [\"_time\", \"Jugadores\", \"stat\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> filter(fn: (r) => r.game =~ /${juegos:regex}/)\n  |> group(columns: [\"game\"])\n  |> last()\n  |> group()\n  |> count()\n  |> rename(columns: {_value: \"Juegos\"})\n  |> keep(columns: [\"Juegos\"])"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "vertical",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "value_and_name"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "locale",
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "green"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "id": 3,
+          "title": "Anomalías (periodo)",
+          "description": "Número de cambios de 200.000 jugadores o más entre muestras consecutivas separadas por 10 minutos como máximo. No cuenta huecos mayores de 10 minutos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "import \"math\"\n\nfrom(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> filter(fn: (r) => r.game =~ /${juegos:regex}/)\n  |> group(columns: [\"game\"])\n  |> sort(columns: [\"_time\"])\n  |> map(fn: (r) => ({r with current: r._value, time_int: int(v: r._time)}))\n  |> difference(columns: [\"_value\", \"time_int\"], nonNegative: false)\n  |> map(fn: (r) => ({\n      r with\n      previous: r.current - r._value,\n      gap_s: float(v: r.time_int) / 1000000000.0\n    }))\n  |> filter(fn: (r) => r.gap_s <= 600.0)\n  |> filter(fn: (r) => math.abs(x: r.current - r.previous) >= 200000.0)\n  |> group()\n  |> count()\n  |> keep(columns: [\"_value\"])"
                       }
                     },
                     "refId": "A",
@@ -139,6 +671,7 @@
                 "colorMode": "value",
                 "graphMode": "area",
                 "justifyMode": "auto",
+                "orientation": "auto",
                 "reduceOptions": {
                   "calcs": [
                     "lastNotNull"
@@ -151,91 +684,24 @@
               "fieldConfig": {
                 "defaults": {
                   "unit": "short",
+                  "decimals": 0,
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
                       {
                         "value": null,
                         "color": "green"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
-                },
-                "overrides": []
-              }
-            }
-          }
-        }
-      },
-      "panel-3": {
-        "kind": "Panel",
-        "spec": {
-          "id": 3,
-          "title": "Mínimo del periodo",
-          "links": [],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "P951FEA4DE68E13C5"
                       },
-                      "spec": {
-                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\")\n  |> filter(fn: (r) => r._field == \"players\")\n  |> filter(fn: (r) => r.game == \"${juego}\")\n  |> min()"
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [],
-              "queryOptions": {}
-            }
-          },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "stat",
-            "version": "",
-            "spec": {
-              "options": {
-                "colorMode": "value",
-                "graphMode": "none",
-                "justifyMode": "auto",
-                "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "",
-                  "values": false
-                },
-                "textMode": "auto"
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "short",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
                       {
-                        "value": null,
-                        "color": "blue"
+                        "value": 1,
+                        "color": "orange"
                       }
                     ]
                   },
                   "color": {
                     "mode": "thresholds"
-                  }
+                  },
+                  "noValue": "0"
                 },
                 "overrides": []
               }
@@ -247,7 +713,8 @@
         "kind": "Panel",
         "spec": {
           "id": 4,
-          "title": "Máximo del periodo",
+          "title": "Detalle de anomalías",
+          "description": "Cambios de 200.000 jugadores o más en 10 minutos o menos, ordenados de más reciente a más antiguo. Subida/Caída indica la dirección del cambio.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -264,7 +731,301 @@
                         "name": "P951FEA4DE68E13C5"
                       },
                       "spec": {
-                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\")\n  |> filter(fn: (r) => r._field == \"players\")\n  |> filter(fn: (r) => r.game == \"${juego}\")\n  |> max()"
+                        "query": "import \"math\"\n\nfrom(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> filter(fn: (r) => r.game =~ /${juegos:regex}/)\n  |> group(columns: [\"game\"])\n  |> sort(columns: [\"_time\"])\n  |> map(fn: (r) => ({r with current: r._value, time_int: int(v: r._time)}))\n  |> difference(columns: [\"_value\", \"time_int\"], nonNegative: false)\n  |> map(fn: (r) => ({\n      r with\n      previous: r.current - r._value,\n      gap_s: float(v: r.time_int) / 1000000000.0\n    }))\n  |> filter(fn: (r) => r.gap_s <= 600.0)\n  |> filter(fn: (r) => math.abs(x: r.current - r.previous) >= 200000.0)\n  |> group()\n  |> map(fn: (r) => ({\n      r with\n      cambio: r.current - r.previous,\n      tipo: if r.current - r.previous > 0.0 then \"Subida\" else \"Caída\",\n      minutos: r.gap_s / 60.0\n    }))\n  |> rename(columns: {_time: \"Hora\", game: \"Juego\", current: \"Actual\", previous: \"Anterior\", cambio: \"Cambio\", minutos: \"Minutos\", tipo: \"Tipo\"})\n  |> keep(columns: [\"Hora\", \"Juego\", \"Actual\", \"Anterior\", \"Cambio\", \"Minutos\", \"Tipo\"])\n  |> sort(columns: [\"Hora\"], desc: true)"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "indexByName": {
+                        "Actual": 2,
+                        "Anterior": 3,
+                        "Cambio": 4,
+                        "Hora": 0,
+                        "Juego": 1,
+                        "Minutos": 5,
+                        "Tipo": 6
+                      },
+                      "renameByName": {}
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "enablePagination": false,
+                  "fields": "",
+                  "reducer": "sum",
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin anomalías",
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Actual"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Anterior"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Cambio"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Minutos"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "unit",
+                        "value": "m"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Hora"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "dateTimeAsIso"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-5": {
+        "kind": "Panel",
+        "spec": {
+          "id": 5,
+          "title": "Último valor por juego",
+          "description": "Último dato recibido de cada juego seleccionado, ordenado de mayor a menor número de jugadores.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> filter(fn: (r) => r.game =~ /${juegos:regex}/)\n  |> group(columns: [\"game\"])\n  |> last()\n  |> group()\n  |> rename(columns: {_time: \"Hora\", game: \"Juego\", _value: \"Jugadores\"})\n  |> keep(columns: [\"Juego\", \"Jugadores\", \"Hora\"])\n  |> sort(columns: [\"Jugadores\"], desc: true)"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "indexByName": {
+                        "Hora": 2,
+                        "Juego": 0,
+                        "Jugadores": 1
+                      },
+                      "renameByName": {}
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "enablePagination": false,
+                  "fields": "",
+                  "reducer": "sum",
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos",
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Jugadores"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Hora"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "dateTimeAsIso"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-6": {
+        "kind": "Panel",
+        "spec": {
+          "id": 6,
+          "title": "Top juego (ahora)",
+          "description": "Juego con más jugadores en el último dato disponible (últimos 15 minutos).",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "current_t = from(bucket: \"Gamedata\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> group(columns: [\"game\"])\n  |> last()\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Actual\"})\nmean_t = from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> group(columns: [\"game\"])\n  |> mean()\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Media\"})\njoin(tables: {current: current_t, mean: mean_t}, on: [\"game\"])\n  |> group()\n  |> sort(columns: [\"Actual\"], desc: true)\n  |> limit(n: 1)\n  |> rename(columns: {game: \"Juego\", Media: \"Media periodo\", Actual: \"Jugadores actuales\"})\n  |> keep(columns: [\"Juego\", \"Media periodo\", \"Jugadores actuales\"])\n  |> keep(columns: [\"Juego\"])"
                       }
                     },
                     "refId": "A",
@@ -284,43 +1045,63 @@
               "options": {
                 "colorMode": "value",
                 "graphMode": "none",
-                "justifyMode": "auto",
+                "justifyMode": "center",
+                "orientation": "horizontal",
                 "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "",
-                  "values": false
+                  "calcs": [],
+                  "fields": "/.*/",
+                  "limit": 1,
+                  "values": true
                 },
-                "textMode": "auto"
+                "textMode": "value",
+                "wideLayout": true
               },
               "fieldConfig": {
                 "defaults": {
                   "unit": "short",
+                  "decimals": 0,
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
                       {
                         "value": null,
-                        "color": "orange"
+                        "color": "text"
                       }
                     ]
                   },
                   "color": {
                     "mode": "thresholds"
-                  }
+                  },
+                  "noValue": "Sin datos"
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Juego"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#5794F2",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
         }
       },
-      "panel-5": {
+      "panel-7": {
         "kind": "Panel",
         "spec": {
-          "id": 5,
-          "title": "Último valor por juego",
+          "id": 7,
+          "title": "Calidad de datos",
+          "description": "Última actualización recibida por juego y estado de la recogida. No genera alertas: sirve para saber si los datos están llegando. No se muestra el número de puntos.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -337,7 +1118,155 @@
                         "name": "P951FEA4DE68E13C5"
                       },
                       "spec": {
-                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\")\n  |> filter(fn: (r) => r._field == \"players\")\n  |> last()\n  |> keep(columns: [\"game\", \"appid\", \"_time\", \"_value\"])\n  |> group()\n  |> sort(columns: [\"game\"])"
+                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: -7d)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> group(columns: [\"game\"])\n  |> last()\n  |> map(fn: (r) => ({\n      r with\n      age_min: float(v: int(v: now()) - int(v: r._time)) / 60000000000.0,\n      status: if float(v: int(v: now()) - int(v: r._time)) / 60000000000.0 > 10.0 then \"Sin datos recientes\" else \"Actualizado\"\n    }))\n  |> group()\n  |> rename(columns: {game: \"Juego\", _time: \"Última actualización\", age_min: \"Minutos\", status: \"Estado\"})\n  |> keep(columns: [\"Juego\", \"Última actualización\", \"Minutos\", \"Estado\"])\n  |> sort(columns: [\"Minutos\"], desc: true)"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "indexByName": {
+                        "Estado": 3,
+                        "Juego": 0,
+                        "Minutos": 2,
+                        "Última actualización": 1
+                      },
+                      "renameByName": {}
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "enablePagination": false,
+                  "fields": "",
+                  "reducer": "sum",
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos",
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Minutos"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "unit",
+                        "value": "m"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Última actualización"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "dateTimeAsIso"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Estado"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "Actualizado": {
+                                "color": "green",
+                                "index": 0
+                              },
+                              "Sin datos recientes": {
+                                "color": "orange",
+                                "index": 1
+                              }
+                            },
+                            "type": "value"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-8": {
+        "kind": "Panel",
+        "spec": {
+          "id": 8,
+          "title": "Comparar 2 juegos",
+          "description": "Evolución de jugadores de los dos juegos elegidos en Juego A y Juego B. Los datos actuales y la media están en los paneles superiores.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> filter(fn: (r) => r.game == \"${juego_a}\" or r.game == \"${juego_b}\")\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"game\"], valueColumn: \"_value\")\n  |> drop(columns: [\"_start\", \"_stop\", \"_field\", \"_measurement\", \"appid\"])\n  |> group()"
                       }
                     },
                     "refId": "A",
@@ -351,17 +1280,181 @@
           },
           "vizConfig": {
             "kind": "VizConfig",
-            "group": "table",
+            "group": "timeseries",
             "version": "",
             "spec": {
               "options": {
-                "showHeader": true
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
               },
               "fieldConfig": {
                 "defaults": {
-                  "unit": "short"
+                  "unit": "locale",
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisLabel": "Jugadores",
+                    "axisPlacement": "auto",
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 2,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "never",
+                    "spanNulls": 600000,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
                 },
                 "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-9": {
+        "kind": "Panel",
+        "spec": {
+          "id": 9,
+          "title": "Métricas del top juego",
+          "description": "Media en el periodo seleccionado y jugadores actuales del juego que lidera ahora.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "current_t = from(bucket: \"Gamedata\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> group(columns: [\"game\"])\n  |> last()\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Actual\"})\nmean_t = from(bucket: \"Gamedata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"steam_live_players\" and r._field == \"players\")\n  |> group(columns: [\"game\"])\n  |> mean()\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Media\"})\njoin(tables: {current: current_t, mean: mean_t}, on: [\"game\"])\n  |> group()\n  |> sort(columns: [\"Actual\"], desc: true)\n  |> limit(n: 1)\n  |> rename(columns: {game: \"Juego\", Media: \"Media periodo\", Actual: \"Jugadores actuales\"})\n  |> keep(columns: [\"Juego\", \"Media periodo\", \"Jugadores actuales\"])\n  |> keep(columns: [\"Media periodo\", \"Jugadores actuales\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "value_and_name",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Media periodo"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#F2CC0C",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Jugadores actuales"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#73BF69",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "unit",
+                        "value": "locale"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -390,7 +1483,72 @@
             "spec": {
               "x": 0,
               "y": 10,
-              "width": 8,
+              "width": 12,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-6"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 10,
+              "width": 12,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-9"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 15,
+              "width": 24,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-8"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 23,
+              "width": 12,
+              "height": 4,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-10"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 23,
+              "width": 12,
+              "height": 4,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-11"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 27,
+              "width": 6,
               "height": 5,
               "element": {
                 "kind": "ElementReference",
@@ -401,9 +1559,9 @@
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 8,
-              "y": 10,
-              "width": 8,
+              "x": 6,
+              "y": 27,
+              "width": 6,
               "height": 5,
               "element": {
                 "kind": "ElementReference",
@@ -414,10 +1572,10 @@
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 16,
-              "y": 10,
-              "width": 8,
-              "height": 5,
+              "x": 12,
+              "y": 27,
+              "width": 12,
+              "height": 13,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-4"
@@ -428,12 +1586,38 @@
             "kind": "GridLayoutItem",
             "spec": {
               "x": 0,
-              "y": 15,
-              "width": 24,
-              "height": 10,
+              "y": 32,
+              "width": 12,
+              "height": 8,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-5"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 40,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-12"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 40,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-7"
               }
             }
           }
@@ -472,12 +1656,48 @@
       {
         "kind": "QueryVariable",
         "spec": {
-          "name": "juego",
+          "name": "juegos",
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "label": "Juegos",
+          "hide": "dontHide",
+          "refresh": "onDashboardLoad",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "influxdb",
+            "version": "v0",
+            "datasource": {
+              "name": "P951FEA4DE68E13C5"
+            },
+            "spec": {
+              "__legacyStringValue": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"Gamedata\", tag: \"game\")"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "juego_a",
           "current": {
             "text": "Counter-Strike 2",
             "value": "Counter-Strike 2"
           },
-          "label": "Juego",
+          "label": "Juego A",
           "hide": "dontHide",
           "refresh": "onDashboardLoad",
           "skipUrlSync": false,
@@ -497,6 +1717,76 @@
           "options": [],
           "multi": false,
           "includeAll": false,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "juego_b",
+          "current": {
+            "text": "Dota 2",
+            "value": "Dota 2"
+          },
+          "label": "Juego B",
+          "hide": "dontHide",
+          "refresh": "onDashboardLoad",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "influxdb",
+            "version": "v0",
+            "datasource": {
+              "name": "P951FEA4DE68E13C5"
+            },
+            "spec": {
+              "__legacyStringValue": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"Gamedata\", tag: \"game\")"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "options": [],
+          "multi": false,
+          "includeAll": false,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "CustomVariable",
+        "spec": {
+          "name": "stat",
+          "query": "Directo,Mínimo,Máximo,Media",
+          "current": {
+            "text": "Directo",
+            "value": "Directo"
+          },
+          "options": [
+            {
+              "selected": true,
+              "text": "Directo",
+              "value": "Directo"
+            },
+            {
+              "selected": false,
+              "text": "Mínimo",
+              "value": "Mínimo"
+            },
+            {
+              "selected": false,
+              "text": "Máximo",
+              "value": "Máximo"
+            },
+            {
+              "selected": false,
+              "text": "Media",
+              "value": "Media"
+            }
+          ],
+          "multi": false,
+          "includeAll": false,
+          "label": "Estadística",
+          "hide": "dontHide",
+          "skipUrlSync": false,
           "allowCustomValue": true
         }
       }
