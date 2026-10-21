@@ -85,7 +85,7 @@
         "type": "influxdb out",
         "z": "3c7d0d72b3ff751f",
         "influxdb": "0be38a8e9e4c67ee",
-        "name": "INFLUX, Bucket: API Steam",
+        "name": "INFLUX, Bucket: Gamedata",
         "measurement": "steam_live_players",
         "precision": "",
         "retentionPolicy": "",
