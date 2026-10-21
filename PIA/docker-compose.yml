@@ -14,12 +14,13 @@ services:
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
     volumes:
       - ./datos/influxdb:/var/lib/influxdb2
+    user: "1000:1000"
     healthcheck:
-      test: ["CMD", "influx", "ping"]
+      test: ["CMD", "influx", "ping", "--host", "http://127.0.0.1:8086"]
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 5s
+      start_period: 60s
 
   grafana:
     image: grafana/grafana:13.2.4
