@@ -92,8 +92,8 @@
         "database": "database",
         "precisionV18FluxV20": "ms",
         "retentionPolicyV18Flux": "",
-        "org": "orgsomorrostro",
-        "bucket": "Gamedata",
+        "org": "${DOCKER_INFLUXDB_INIT_ORG}",
+        "bucket": "${DOCKER_INFLUXDB_INIT_BUCKET}",
         "x": 1040,
         "y": 560,
         "wires": []
