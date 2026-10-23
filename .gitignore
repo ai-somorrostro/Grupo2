@@ -3,3 +3,14 @@ PIA/datos/
 PIA/nodered/*.backup
 PIA/nodered/lib/
 PIA/nodered/.npm*Zone.Indentifier
+PIA/nodered/.npm/
+PIA/nodered/.config.*
+Mejoras/csv/extras/*
+
+# Entorno y credenciales
+.env
+**/.env
+
+# Dependencias
+node_modules/
+**/node_modules/

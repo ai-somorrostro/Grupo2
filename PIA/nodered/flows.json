@@ -34,7 +34,7 @@
         "id": "670f11fe866ddc19",
         "type": "inject",
         "z": "3c7d0d72b3ff751f",
-        "name": "Injection 3 mins",
+        "name": "Injection 5 mins",
         "props": [
             {
                 "p": "payload"
@@ -44,18 +44,18 @@
                 "vt": "str"
             }
         ],
-        "repeat": "180",
+        "repeat": "300",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 390,
+        "x": 250,
         "y": 420,
         "wires": [
             [
-                "564d77e135891f62"
+                "23cc2ad988215ef7"
             ]
         ]
     },
@@ -64,7 +64,7 @@
         "type": "function",
         "z": "3c7d0d72b3ff751f",
         "name": "Funcion API",
-        "func": "const resp = msg.payload && msg.payload.response;\nconst jugadores = resp ? resp.player_count : undefined;\n\nif (typeof jugadores !== \"number\") {\n    node.warn(\"Respuesta inesperada de Steam: \" + JSON.stringify(msg.payload));\n    node.status({ fill: \"red\", shape: \"ring\", text: \"Sin dato\" });\n    return null;\n}\n\nmsg.payload = { jugadores: jugadores };\n\nnode.status({ fill: \"green\", shape: \"dot\", text: \"Jugadores: \" + jugadores });\nreturn msg;",
+        "func": "const resp = msg.payload && msg.payload.response;\n\nif (!resp || typeof resp.player_count !== \"number\") {\n    node.warn(\"Sin dato para \" + msg.game);\n    return null;\n}\n\nmsg.players = resp.player_count;\n\nmsg.payload = [\n    { players: resp.player_count },\n    { game: msg.game, appid: String(msg.appid) }\n];\n\nnode.status({ fill: \"green\", shape: \"dot\", text: msg.game + \": \" + resp.player_count });\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -85,15 +85,15 @@
         "type": "influxdb out",
         "z": "3c7d0d72b3ff751f",
         "influxdb": "0be38a8e9e4c67ee",
-        "name": "INFLUX, Bucket: API Steam",
-        "measurement": "cs2_live_players",
+        "name": "INFLUX, Bucket: Gamedata",
+        "measurement": "steam_live_players",
         "precision": "",
         "retentionPolicy": "",
         "database": "database",
         "precisionV18FluxV20": "ms",
         "retentionPolicyV18Flux": "",
-        "org": "orgsomorrostro",
-        "bucket": "bucketsomorrostro",
+        "org": "${DOCKER_INFLUXDB_INIT_ORG}",
+        "bucket": "${DOCKER_INFLUXDB_INIT_BUCKET}",
         "x": 1040,
         "y": 560,
         "wires": []
@@ -106,7 +106,7 @@
         "method": "GET",
         "ret": "obj",
         "paytoqs": "ignore",
-        "url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=730",
+        "url": "",
         "tls": "",
         "persist": false,
         "proxy": "",
@@ -114,7 +114,7 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 570,
+        "x": 610,
         "y": 420,
         "wires": [
             [
@@ -138,5 +138,25 @@
         "x": 980,
         "y": 300,
         "wires": []
+    },
+    {
+        "id": "23cc2ad988215ef7",
+        "type": "function",
+        "z": "3c7d0d72b3ff751f",
+        "name": "function 1",
+        "func": "const games = [\n    { appid: 440, game: \"Team Fortress 2\" },\n    { appid: 105600, game: \"Terraria\" },\n    { appid: 570, game: \"Dota 2\" },\n    { appid: 730, game: \"Counter-Strike 2\" },\n    { appid: 108600, game: \"Project Zomboid\" },\n    { appid: 252490, game: \"Rust\" },\n    { appid: 413150, game: \"Stardew Valley\" },\n    { appid: 367520, game: \"Hollow Knight\" },\n    { appid: 578080, game: \"PUBG\" },\n    { appid: 945360, game: \"Among Us\" }\n];\n\nreturn [games.map(g => ({\n    appid: g.appid,\n    game: g.game,\n    url: `https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=${g.appid}`\n}))];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 420,
+        "wires": [
+            [
+                "564d77e135891f62"
+            ]
+        ]
     }
 ]

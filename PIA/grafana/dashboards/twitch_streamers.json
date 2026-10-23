@@ -1,0 +1,2398 @@
+{
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "twitchstreamers"
+  },
+  "spec": {
+    "annotations": [],
+    "cursorSync": "Off",
+    "editable": true,
+    "elements": {
+      "panel-1": {
+        "kind": "Panel",
+        "spec": {
+          "id": 1,
+          "title": "",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "## Zona 1 · Resumen general\nStreamers, horas vistas, emisiones y juegos con más audiencia en Twitch.\n\n**Escala de horas:** cada panel indica si está en millones, miles o miles de millones."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "id": 2,
+          "title": "Streamers en los datos",
+          "description": "Número de streamers distintos con al menos una emisión en el periodo seleccionado.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"broadcasts\")\n  |> filter(fn: (r) => r.streamer =~ /${streamer:regex}/)\n  |> group(columns: [\"streamer\"])\n  |> count()\n  |> group()\n  |> count(column: \"_value\")\n  |> rename(columns: {_value: \"Streamers\"})"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [],
+                  "fields": "/.*/",
+                  "limit": 1,
+                  "values": true
+                },
+                "textMode": "value",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "id": 3,
+          "title": "Horas vistas totales (millones de horas)",
+          "description": "Suma de horas vistas de todas las emisiones de los streamers seleccionados. No se reparte por juego. Valores en millones de horas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_broadcasts\" and r._field == \"watch_time_hours\")\n  |> filter(fn: (r) => r.streamer =~ /${streamer:regex}/)\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> keep(columns: [\"_value\"])\n  |> rename(columns: {_value: \"Horas vistas\"})"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [],
+                  "fields": "/.*/",
+                  "limit": 1,
+                  "values": true
+                },
+                "textMode": "value",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "decimals": 1,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "id": 4,
+          "title": "Emisiones",
+          "description": "Número de emisiones de los streamers seleccionados en el periodo.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_broadcasts\" and r._field == \"watch_time_hours\")\n  |> filter(fn: (r) => r.streamer =~ /${streamer:regex}/)\n  |> group()\n  |> count(column: \"_value\")\n  |> rename(columns: {_value: \"Emisiones\"})"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [],
+                  "fields": "/.*/",
+                  "limit": 1,
+                  "values": true
+                },
+                "textMode": "value",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-5": {
+        "kind": "Panel",
+        "spec": {
+          "id": 5,
+          "title": "Juego líder global (365 días)",
+          "description": "Juego con más horas vistas en la foto global de los últimos 365 días. Es una foto fija y no depende del rango de tiempo del dashboard.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: -5y)\n  |> filter(fn: (r) => r._measurement == \"twitch_top_games_365d\" and r._field == \"watch_time_hours\")\n  |> group()\n  |> top(n: 1, columns: [\"_value\"])\n  |> keep(columns: [\"game\"])\n  |> rename(columns: {game: \"Juego top\"})"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [],
+                  "fields": "/.*/",
+                  "limit": 1,
+                  "values": true
+                },
+                "textMode": "value",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-6": {
+        "kind": "Panel",
+        "spec": {
+          "id": 6,
+          "title": "Streamers por horas repartidas (millones de horas)",
+          "description": "Ranking de streamers por la suma de horas vistas repartidas entre sus juegos. Si una emisión tiene varios juegos, las horas se dividen a partes iguales. Valores en millones de horas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.streamer =~ /${streamer:regex}/)\n  |> group(columns: [\"streamer\"])\n  |> sum()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> limit(n: 10)\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> pivot(rowKey: [], columnKey: [\"streamer\"], valueColumn: \"_value\")"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showUnfilled": true,
+                "valueMode": "text",
+                "namePlacement": "left",
+                "sizing": "auto",
+                "minVizHeight": 16,
+                "minVizWidth": 8
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "decimals": 1,
+                  "min": 0,
+                  "color": {
+                    "mode": "continuous-GrYlRd"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "green"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-7": {
+        "kind": "Panel",
+        "spec": {
+          "id": 7,
+          "title": "Top 10 juegos globales (miles de millones de horas)",
+          "description": "Juegos con más horas vistas en la foto global de 365 días. Es una referencia externa y no se filtra por los streamers seleccionados. Valores en miles de millones de horas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: -5y)\n  |> filter(fn: (r) => r._measurement == \"twitch_top_games_365d\" and r._field == \"watch_time_hours\")\n  |> group(columns: [\"game\"])\n  |> last()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> limit(n: 10)\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000000.0}))\n  |> pivot(rowKey: [], columnKey: [\"game\"], valueColumn: \"_value\")"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showUnfilled": true,
+                "valueMode": "text",
+                "namePlacement": "left",
+                "sizing": "auto",
+                "minVizHeight": 16,
+                "minVizWidth": 8
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "decimals": 1,
+                  "min": 0,
+                  "color": {
+                    "mode": "continuous-GrYlRd"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "green"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-8": {
+        "kind": "Panel",
+        "spec": {
+          "id": 8,
+          "title": "Horas vistas globales por mes (millones de horas)",
+          "description": "Evolución mensual de las horas vistas sumando todos los juegos del CSV mensual. Valores en millones de horas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_games_monthly\" and r._field == \"hours_watched\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"Horas vistas\"})"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisLabel": "Millones de horas",
+                    "axisPlacement": "auto",
+                    "drawStyle": "line",
+                    "fillOpacity": 8,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 2,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "never",
+                    "spanNulls": 2592000000,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "noValue": "Sin datos",
+                  "decimals": 1
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-9": {
+        "kind": "Panel",
+        "spec": {
+          "id": 9,
+          "title": "Reparto de horas por juego (millones de horas)",
+          "description": "Top 10 juegos por horas repartidas de los streamers seleccionados. Cada emisión multi-juego reparte sus horas a partes iguales. Valores en millones de horas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.streamer =~ /${streamer:regex}/)\n  |> group(columns: [\"game\"])\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> group()\n  |> top(n: 10, columns: [\"_value\"])\n  |> pivot(rowKey: [], columnKey: [\"game\"], valueColumn: \"_value\")"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "piechart",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayLabels": [
+                  "percent"
+                ],
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "right",
+                  "showLegend": true,
+                  "values": [
+                    "percent"
+                  ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "decimals": 1,
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "noValue": "Sin datos",
+                  "custom": {
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    }
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-10": {
+        "kind": "Panel",
+        "spec": {
+          "id": 10,
+          "title": "Comparativa de streamers",
+          "description": "Tabla con horas repartidas, horas totales y número de emisiones por streamer. Las horas repartidas suman las horas de cada juego; las horas totales no se duplican. Valores en millones de horas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "share = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.streamer =~ /${streamer:regex}/)\n  |> group(columns: [\"streamer\"])\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> keep(columns: [\"streamer\", \"_value\"])\n  |> rename(columns: {_value: \"Horas repartidas\"})\n\ntotal = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_broadcasts\" and r._field == \"watch_time_hours\")\n  |> filter(fn: (r) => r.streamer =~ /${streamer:regex}/)\n  |> group(columns: [\"streamer\"])\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> keep(columns: [\"streamer\", \"_value\"])\n  |> rename(columns: {_value: \"Horas totales\"})\n\nemisiones = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_broadcasts\" and r._field == \"watch_time_hours\")\n  |> filter(fn: (r) => r.streamer =~ /${streamer:regex}/)\n  |> group(columns: [\"streamer\"])\n  |> count()\n  |> keep(columns: [\"streamer\", \"_value\"])\n  |> rename(columns: {_value: \"Emisiones\"})\n\njoined = join(tables: {share: share, total: total}, on: [\"streamer\"])\njoin(tables: {joined: joined, emisiones: emisiones}, on: [\"streamer\"])\n  |> group()\n  |> sort(columns: [\"Horas repartidas\"], desc: true)\n  |> rename(columns: {streamer: \"Streamer\"})\n  |> keep(columns: [\"Streamer\", \"Horas repartidas\", \"Horas totales\", \"Emisiones\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "indexByName": {
+                        "Streamer": 0,
+                        "Horas repartidas": 1,
+                        "Horas totales": 2,
+                        "Emisiones": 3
+                      },
+                      "renameByName": {
+                        "Horas repartidas": "Horas repartidas (millones)",
+                        "Horas totales": "Horas totales (millones)"
+                      }
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "enablePagination": false,
+                  "fields": "",
+                  "reducer": "sum",
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos",
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Horas repartidas (millones)"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Horas totales (millones)"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Emisiones"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-12": {
+        "kind": "Panel",
+        "spec": {
+          "id": 12,
+          "title": "",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "## Zona 2 · Comparación de juegos\nElige 2 juegos por bloque. La comparación usa todos los streamers."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-20": {
+        "kind": "Panel",
+        "spec": {
+          "id": 20,
+          "title": "",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "## Juegos con 1 streamer\nSelecciona 2 juegos en el desplegable."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-28": {
+        "kind": "Panel",
+        "spec": {
+          "id": 28,
+          "title": "Evolución mensual · 1 streamer (millones de horas)",
+          "description": "Horas repartidas por mes de los juegos seleccionados. Valores en millones de horas. Si un juego solo tiene un mes, se muestra como punto.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_unico:regex}/)\n  |> group(columns: [\"game\"])\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false, timeSrc: \"_start\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"game\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisLabel": "Millones de horas",
+                    "axisPlacement": "auto",
+                    "drawStyle": "line",
+                    "fillOpacity": 8,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 2,
+                    "pointSize": 7,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "always",
+                    "spanNulls": 3024000000,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "noValue": "Sin datos",
+                  "decimals": 2,
+                  "min": 0
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-21": {
+        "kind": "Panel",
+        "spec": {
+          "id": 21,
+          "title": "Comparación · 1 streamer",
+          "description": "Compara los juegos seleccionados: streamers distintos, horas repartidas, emisiones y media por streamer. Horas en millones. Si eliges más de 2, se muestran todos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "hours = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_unico:regex}/)\n  |> group(columns: [\"game\"])\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Horas\"})\n\nstreamers = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_unico:regex}/)\n  |> group(columns: [\"game\", \"streamer\"])\n  |> count()\n  |> group(columns: [\"game\"])\n  |> count()\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Streamers\"})\n\nemisiones = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"broadcasts\")\n  |> filter(fn: (r) => r.game =~ /${juego_unico:regex}/)\n  |> group(columns: [\"game\"])\n  |> sum()\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Emisiones\"})\n\nj1 = join(tables: {h: hours, s: streamers}, on: [\"game\"])\njoin(tables: {j: j1, e: emisiones}, on: [\"game\"])\n  |> map(fn: (r) => ({r with Horas_por_streamer: r.Horas / float(v: r.Streamers)}))\n  |> group()\n  |> sort(columns: [\"Horas\"], desc: true)\n  |> rename(columns: {game: \"Juego\", Horas: \"Horas (millones)\", Horas_por_streamer: \"Horas/streamer (M)\"})\n  |> keep(columns: [\"Juego\", \"Streamers\", \"Horas (millones)\", \"Emisiones\", \"Horas/streamer (M)\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "indexByName": {
+                        "Juego": 0,
+                        "Streamers": 1,
+                        "Horas (millones)": 2,
+                        "Emisiones": 3,
+                        "Horas/streamer (M)": 4
+                      },
+                      "renameByName": {}
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "enablePagination": false,
+                  "fields": "",
+                  "reducer": "sum",
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos",
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Juego"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 220
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Streamers"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      },
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Horas (millones)"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 130
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Emisiones"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      },
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Horas/streamer (M)"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 160
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-22": {
+        "kind": "Panel",
+        "spec": {
+          "id": 22,
+          "title": "Horas totales por juego · 1 streamer (millones de horas)",
+          "description": "Horas repartidas totales de cada juego seleccionado. Valores en millones de horas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_unico:regex}/)\n  |> group(columns: [\"game\"])\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> pivot(rowKey: [], columnKey: [\"game\"], valueColumn: \"_value\")"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showUnfilled": true,
+                "valueMode": "text",
+                "namePlacement": "left",
+                "sizing": "auto",
+                "minVizHeight": 16,
+                "minVizWidth": 8
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "decimals": 2,
+                  "min": 0,
+                  "color": {
+                    "mode": "continuous-GrYlRd"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "green"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-23": {
+        "kind": "Panel",
+        "spec": {
+          "id": 23,
+          "title": "Aporte por streamer · 1 streamer",
+          "description": "Detalle de horas, emisiones y pico por streamer para los juegos seleccionados. Horas en miles. Si eliges más de 2, se muestran todos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "hours = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_unico:regex}/)\n  |> group(columns: [\"game\", \"streamer\"])\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000.0}))\n  |> keep(columns: [\"game\", \"streamer\", \"_value\"])\n  |> rename(columns: {_value: \"Horas\"})\n\nemisiones = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"broadcasts\")\n  |> filter(fn: (r) => r.game =~ /${juego_unico:regex}/)\n  |> group(columns: [\"game\", \"streamer\"])\n  |> sum()\n  |> keep(columns: [\"game\", \"streamer\", \"_value\"])\n  |> rename(columns: {_value: \"Emisiones\"})\n\npico = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"peak_viewers\")\n  |> filter(fn: (r) => r.game =~ /${juego_unico:regex}/)\n  |> group(columns: [\"game\", \"streamer\"])\n  |> max()\n  |> keep(columns: [\"game\", \"streamer\", \"_value\"])\n  |> rename(columns: {_value: \"Pico\"})\n\nj = join(tables: {h: hours, e: emisiones}, on: [\"game\", \"streamer\"])\njoin(tables: {j: j, p: pico}, on: [\"game\", \"streamer\"])\n  |> group(columns: [\"game\"])\n  |> sort(columns: [\"Horas\"], desc: true)\n  |> group()\n  |> rename(columns: {game: \"Juego\", streamer: \"Streamer\", Horas: \"Horas (miles)\"})\n  |> keep(columns: [\"Juego\", \"Streamer\", \"Horas (miles)\", \"Emisiones\", \"Pico\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "indexByName": {
+                        "Juego": 0,
+                        "Streamer": 1,
+                        "Horas (miles)": 2,
+                        "Emisiones": 3,
+                        "Pico": 4
+                      },
+                      "renameByName": {}
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "enablePagination": false,
+                  "fields": "",
+                  "reducer": "sum",
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos",
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Juego"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 220
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Streamer"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 160
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Horas (miles)"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 120
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Emisiones"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      },
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Pico"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      },
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-24": {
+        "kind": "Panel",
+        "spec": {
+          "id": 24,
+          "title": "",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "## Juegos con 2+ streamers\nSelecciona 2 juegos en el desplegable."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-29": {
+        "kind": "Panel",
+        "spec": {
+          "id": 29,
+          "title": "Evolución mensual · 2+ streamers (millones de horas)",
+          "description": "Horas repartidas por mes de los juegos seleccionados. Valores en millones de horas. Si un juego solo tiene un mes, se muestra como punto.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_multi:regex}/)\n  |> group(columns: [\"game\"])\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false, timeSrc: \"_start\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"game\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisLabel": "Millones de horas",
+                    "axisPlacement": "auto",
+                    "drawStyle": "line",
+                    "fillOpacity": 8,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 2,
+                    "pointSize": 7,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "always",
+                    "spanNulls": 3024000000,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "noValue": "Sin datos",
+                  "decimals": 2,
+                  "min": 0
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-25": {
+        "kind": "Panel",
+        "spec": {
+          "id": 25,
+          "title": "Comparación · 2+ streamers",
+          "description": "Compara los juegos seleccionados: streamers distintos, horas repartidas, emisiones y media por streamer. Horas en millones. Si eliges más de 2, se muestran todos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "hours = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_multi:regex}/)\n  |> group(columns: [\"game\"])\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Horas\"})\n\nstreamers = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_multi:regex}/)\n  |> group(columns: [\"game\", \"streamer\"])\n  |> count()\n  |> group(columns: [\"game\"])\n  |> count()\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Streamers\"})\n\nemisiones = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"broadcasts\")\n  |> filter(fn: (r) => r.game =~ /${juego_multi:regex}/)\n  |> group(columns: [\"game\"])\n  |> sum()\n  |> keep(columns: [\"game\", \"_value\"])\n  |> rename(columns: {_value: \"Emisiones\"})\n\nj1 = join(tables: {h: hours, s: streamers}, on: [\"game\"])\njoin(tables: {j: j1, e: emisiones}, on: [\"game\"])\n  |> map(fn: (r) => ({r with Horas_por_streamer: r.Horas / float(v: r.Streamers)}))\n  |> group()\n  |> sort(columns: [\"Horas\"], desc: true)\n  |> rename(columns: {game: \"Juego\", Horas: \"Horas (millones)\", Horas_por_streamer: \"Horas/streamer (M)\"})\n  |> keep(columns: [\"Juego\", \"Streamers\", \"Horas (millones)\", \"Emisiones\", \"Horas/streamer (M)\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "indexByName": {
+                        "Juego": 0,
+                        "Streamers": 1,
+                        "Horas (millones)": 2,
+                        "Emisiones": 3,
+                        "Horas/streamer (M)": 4
+                      },
+                      "renameByName": {}
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "enablePagination": false,
+                  "fields": "",
+                  "reducer": "sum",
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos",
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Juego"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 220
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Streamers"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      },
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Horas (millones)"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 130
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Emisiones"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      },
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Horas/streamer (M)"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 160
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-26": {
+        "kind": "Panel",
+        "spec": {
+          "id": 26,
+          "title": "Horas totales por juego · 2+ streamers (millones de horas)",
+          "description": "Horas repartidas totales de cada juego seleccionado. Valores en millones de horas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_multi:regex}/)\n  |> group(columns: [\"game\"])\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000000.0}))\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> pivot(rowKey: [], columnKey: [\"game\"], valueColumn: \"_value\")"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showUnfilled": true,
+                "valueMode": "text",
+                "namePlacement": "left",
+                "sizing": "auto",
+                "minVizHeight": 16,
+                "minVizWidth": 8
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "decimals": 2,
+                  "min": 0,
+                  "color": {
+                    "mode": "continuous-GrYlRd"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "green"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-27": {
+        "kind": "Panel",
+        "spec": {
+          "id": 27,
+          "title": "Aporte por streamer · 2+ streamers",
+          "description": "Detalle de horas, emisiones y pico por streamer para los juegos seleccionados. Horas en miles. Si eliges más de 2, se muestran todos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "P951FEA4DE68E13C5"
+                      },
+                      "spec": {
+                        "query": "hours = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> filter(fn: (r) => r.game =~ /${juego_multi:regex}/)\n  |> group(columns: [\"game\", \"streamer\"])\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000.0}))\n  |> keep(columns: [\"game\", \"streamer\", \"_value\"])\n  |> rename(columns: {_value: \"Horas\"})\n\nemisiones = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"broadcasts\")\n  |> filter(fn: (r) => r.game =~ /${juego_multi:regex}/)\n  |> group(columns: [\"game\", \"streamer\"])\n  |> sum()\n  |> keep(columns: [\"game\", \"streamer\", \"_value\"])\n  |> rename(columns: {_value: \"Emisiones\"})\n\npico = from(bucket: \"TwitchData\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"peak_viewers\")\n  |> filter(fn: (r) => r.game =~ /${juego_multi:regex}/)\n  |> group(columns: [\"game\", \"streamer\"])\n  |> max()\n  |> keep(columns: [\"game\", \"streamer\", \"_value\"])\n  |> rename(columns: {_value: \"Pico\"})\n\nj = join(tables: {h: hours, e: emisiones}, on: [\"game\", \"streamer\"])\njoin(tables: {j: j, p: pico}, on: [\"game\", \"streamer\"])\n  |> group(columns: [\"game\"])\n  |> sort(columns: [\"Horas\"], desc: true)\n  |> group()\n  |> rename(columns: {game: \"Juego\", streamer: \"Streamer\", Horas: \"Horas (miles)\"})\n  |> keep(columns: [\"Juego\", \"Streamer\", \"Horas (miles)\", \"Emisiones\", \"Pico\"])"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "indexByName": {
+                        "Juego": 0,
+                        "Streamer": 1,
+                        "Horas (miles)": 2,
+                        "Emisiones": 3,
+                        "Pico": 4
+                      },
+                      "renameByName": {}
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "enablePagination": false,
+                  "fields": "",
+                  "reducer": "sum",
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "noValue": "Sin datos",
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Juego"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 220
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Streamer"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 160
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Horas (miles)"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 120
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Emisiones"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      },
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Pico"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      },
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "GridLayout",
+      "spec": {
+        "items": [
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 0,
+              "width": 24,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-1"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 5,
+              "width": 6,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-2"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 6,
+              "y": 5,
+              "width": 6,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-3"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 5,
+              "width": 6,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-4"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 18,
+              "y": 5,
+              "width": 6,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-5"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 10,
+              "width": 12,
+              "height": 11,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-6"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 10,
+              "width": 12,
+              "height": 11,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-7"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 21,
+              "width": 12,
+              "height": 9,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-8"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 21,
+              "width": 12,
+              "height": 9,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-9"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 30,
+              "width": 24,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-10"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 38,
+              "width": 24,
+              "height": 3,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-12"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 41,
+              "width": 12,
+              "height": 3,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-20"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 44,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-28"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 52,
+              "width": 12,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-21"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 58,
+              "width": 12,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-22"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 63,
+              "width": 12,
+              "height": 11,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-23"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 41,
+              "width": 12,
+              "height": 3,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-24"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 44,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-29"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 52,
+              "width": 12,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-25"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 58,
+              "width": 12,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-26"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 63,
+              "width": 12,
+              "height": 11,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-27"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "links": [],
+    "liveNow": false,
+    "preload": false,
+    "tags": [
+      "twitch",
+      "streamers",
+      "juegos"
+    ],
+    "timeSettings": {
+      "timezone": "browser",
+      "from": "now-1y",
+      "to": "now",
+      "autoRefresh": "5m",
+      "autoRefreshIntervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ],
+      "hideTimepicker": false,
+      "fiscalYearStartMonth": 0
+    },
+    "title": "Twitch - Streamers y juegos",
+    "variables": [
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "streamer",
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "label": "Streamers",
+          "hide": "dontHide",
+          "refresh": "onDashboardLoad",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "influxdb",
+            "version": "v0",
+            "datasource": {
+              "name": "P951FEA4DE68E13C5"
+            },
+            "spec": {
+              "__legacyStringValue": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"TwitchData\", tag: \"streamer\")"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "juego_unico",
+          "current": {
+            "text": [
+              "TCG Card Shop Simulator",
+              "osu!"
+            ],
+            "value": [
+              "TCG Card Shop Simulator",
+              "osu!"
+            ]
+          },
+          "label": "Juegos 1 streamer · elige 2",
+          "hide": "dontHide",
+          "refresh": "onDashboardLoad",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "influxdb",
+            "version": "v0",
+            "datasource": {
+              "name": "P951FEA4DE68E13C5"
+            },
+            "spec": {
+              "__legacyStringValue": "from(bucket: \"TwitchData\")\n  |> range(start: -5y)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> group(columns: [\"game\", \"streamer\"])\n  |> count()\n  |> group(columns: [\"game\"])\n  |> count()\n  |> rename(columns: {_value: \"n_streamers\"})\n  |> filter(fn: (r) => r.n_streamers == 1)\n  |> keep(columns: [\"game\"])\n  |> rename(columns: {game: \"_value\"})\n  |> group()\n  |> sort()"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "options": [],
+          "multi": true,
+          "includeAll": false,
+          "allowCustomValue": false
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "juego_multi",
+          "current": {
+            "text": [
+              "Just Chatting",
+              "Counter-Strike"
+            ],
+            "value": [
+              "Just Chatting",
+              "Counter-Strike"
+            ]
+          },
+          "label": "Juegos 2+ streamers · elige 2",
+          "hide": "dontHide",
+          "refresh": "onDashboardLoad",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "influxdb",
+            "version": "v0",
+            "datasource": {
+              "name": "P951FEA4DE68E13C5"
+            },
+            "spec": {
+              "__legacyStringValue": "from(bucket: \"TwitchData\")\n  |> range(start: -5y)\n  |> filter(fn: (r) => r._measurement == \"twitch_streamer_games\" and r._field == \"watch_time_hours_share\")\n  |> group(columns: [\"game\", \"streamer\"])\n  |> count()\n  |> group(columns: [\"game\"])\n  |> count()\n  |> rename(columns: {_value: \"n_streamers\"})\n  |> filter(fn: (r) => r.n_streamers >= 2)\n  |> keep(columns: [\"game\"])\n  |> rename(columns: {game: \"_value\"})\n  |> group()\n  |> sort()"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "options": [],
+          "multi": true,
+          "includeAll": false,
+          "allowCustomValue": false
+        }
+      }
+    ]
+  }
+}
